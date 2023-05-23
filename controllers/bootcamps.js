@@ -7,12 +7,14 @@ const asyncHandler = require('../middleware/async')
 // @route   GET /api/v1/bootcamps
 // @access  Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
+    console.log(req.query)
     const reqQuery = {...req.query}
-    const removedFields = ['select', 'sort']
+    const removedFields = ['select', 'sort', 'page', 'limit']
     removedFields.forEach(param => delete reqQuery[param])
 
     const rawQuery = JSON.stringify(reqQuery)
         .replace(/\b(gt|gte|lte|lt|in)\b/g, match => `$${match}`)
+
     const actualQuery = JSON.parse(rawQuery)
 
     const query =  Bootcamp.find(actualQuery)
@@ -30,12 +32,38 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     } else {
         query.sort('-createdAt')
     }
+
+    const page = parseInt(req.query.page, 10) || 1
+    const limit = parseInt(req.query.limit) || 100;
+    const startIndex = (page - 1) * limit
+    const endIndex = page * limit
+    const total = await Bootcamp.countDocuments();
+
+    query.skip(startIndex)
+        .limit(limit)
+
     const data = await query
+
+    const pagination = {}
+    if (endIndex < total) {
+        pagination.next = {
+            page: page + 1,
+            limit
+        }
+    }
+
+    if (startIndex > 0) {
+        pagination.prev = {
+            page: page - 1,
+            limit
+        }
+    }
 
     res.status(200).json({
         success: true,
         data,
-        count: data.length
+        count: data.length,
+        pagination
     })
 })
 
