@@ -19,7 +19,7 @@ const BootcampSchema = new mongoose.Schema({
     website: {
         type: String,
         match: [/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/,
-    , 'Please use a valid URL with HTTP or HTTPS']
+            , 'Please use a valid URL with HTTP or HTTPS']
     },
     phone: {
         type: String,
@@ -97,22 +97,26 @@ const BootcampSchema = new mongoose.Schema({
         default: Date.now()
     }
 }, {
-    virtuals: {
-        shortDescription: {
-            get() {
-                console.log("Value: ")
-                return "Hello world"
-            },
-            set(v) {
-                console.log(`Setting values ${v}`)
-            }
-        }
-    }
+    toJSON: {virtuals: true},
+    toObject: {virtuals: true},
+})
+
+BootcampSchema.pre('deleteOne', async function (next, options) {
+    console.log("OPTIONS ", options)
+    await this.model('Course').deleteMany({ bootcamp: this.__id })
+    next()
+})
+
+BootcampSchema.virtual('courses', {
+    ref: 'Course',
+    localField: '_id',
+    foreignField: 'bootcamp',
+    justOne: false
 })
 
 // Create bootcamp slug from the name
 BootcampSchema.pre('save', function (next, options) {
-    this.slug = slugify(this.name, { lower: true})
+    this.slug = slugify(this.name, {lower: true})
     next()
 })
 

@@ -18,6 +18,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     const actualQuery = JSON.parse(rawQuery)
 
     const query =  Bootcamp.find(actualQuery)
+        .populate('courses', 'title description _id')
 
     if (req.query.select) {
         const fields = req.query.select.split(',')
@@ -106,10 +107,11 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/v1/bootcamps/:id
 // @access  Private
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-    const data = await Bootcamp.findByIdAndRemove(req.params.id)
+    const data = await Bootcamp.findByIdAndDelete(req.params.id)
     if (!data) {
         next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404))
     }
+
     res.status(200)
         .json({success: true})
 })
