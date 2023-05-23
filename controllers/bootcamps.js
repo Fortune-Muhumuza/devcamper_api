@@ -1,12 +1,37 @@
 const Bootcamp = require("../models/Bootcamp")
 const ErrorResponse = require('../utils/errorResponse')
+const NodeGeocoder = require('node-geocoder');
 const asyncHandler = require('../middleware/async')
 
 // @desc    Get all bootcamps
 // @route   GET /api/v1/bootcamps
 // @access  Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-    const data = await Bootcamp.find()
+    const reqQuery = {...req.query}
+    const removedFields = ['select', 'sort']
+    removedFields.forEach(param => delete reqQuery[param])
+
+    const rawQuery = JSON.stringify(reqQuery)
+        .replace(/\b(gt|gte|lte|lt|in)\b/g, match => `$${match}`)
+    const actualQuery = JSON.parse(rawQuery)
+
+    const query =  Bootcamp.find(actualQuery)
+
+    if (req.query.select) {
+        const fields = req.query.select.split(',')
+            .join(' ')
+        query.select(fields)
+    }
+
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(',')
+            .join(' ')
+        query.sort(sortBy)
+    } else {
+        query.sort('-createdAt')
+    }
+    const data = await query
+
     res.status(200).json({
         success: true,
         data,
@@ -59,4 +84,40 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
     }
     res.status(200)
         .json({success: true})
+})
+
+// @desc    Get bootcamps within a radius
+// @route   GET /api/v1/bootcamps/radius/:zipcode/:distance
+// @access  Private
+exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
+    const geocoderOptions = {
+        provider: process.env.GEOCODER_PROVIDER,
+        httpAdapter: 'https',
+        apiKey: process.env.GEOCODER_API_KEY,
+        formatter: null
+    }
+    const geocoder = NodeGeocoder(geocoderOptions)
+
+    const {zipcode, distance} = req.params
+    const location = await geocoder.geocode(zipcode)
+    const latitude = location[0].latitude;
+    const longitude = location[0].longitude
+    const radius = distance / 3963
+    const bookcamps = await Bootcamp.find({
+        location: {
+            $geoWithin: {
+                $centerSphere: [
+                    [longitude, latitude], radius
+                ]
+            }
+        }
+    })
+
+
+    res.status(200)
+        .json({
+            success: true,
+            count: bookcamps.length,
+            data: bookcamps
+        })
 })

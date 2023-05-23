@@ -96,6 +96,18 @@ const BootcampSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
     }
+}, {
+    virtuals: {
+        shortDescription: {
+            get() {
+                console.log("Value: ")
+                return "Hello world"
+            },
+            set(v) {
+                console.log(`Setting values ${v}`)
+            }
+        }
+    }
 })
 
 // Create bootcamp slug from the name
