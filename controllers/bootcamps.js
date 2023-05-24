@@ -1,3 +1,4 @@
+const path = require("path")
 const Bootcamp = require("../models/Bootcamp")
 const ErrorResponse = require('../utils/errorResponse')
 const NodeGeocoder = require('node-geocoder');
@@ -17,7 +18,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
 
     const actualQuery = JSON.parse(rawQuery)
 
-    const query =  Bootcamp.find(actualQuery)
+    const query = Bootcamp.find(actualQuery)
         .populate('courses', 'title description _id')
 
     if (req.query.select) {
@@ -109,7 +110,7 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
     const data = await Bootcamp.findByIdAndDelete(req.params.id)
     if (!data) {
-        next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404))
+        return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404))
     }
 
     res.status(200)
@@ -150,4 +151,43 @@ exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
             count: bookcamps.length,
             data: bookcamps
         })
+})
+
+// @desc    Upload photo for bootcamp
+// @route   PUT /api/v1/bootcamps/:id/photo
+// @access  Private
+exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
+    const data = await Bootcamp.findById(req.params.id)
+
+    if (!data) {
+        return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 400))
+    }
+
+    if (!req.files) {
+        return next(new ErrorResponse('Please upload a file', 400))
+    }
+
+    const file = req.files.file
+    if (!file.mimetype.startsWith('image')) {
+        return next(new ErrorResponse('Please upload image file', 400))
+    }
+
+    if (file.size > process.env.MAX_FILE_UPLOAD) {
+        return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_UPLOAD}`, 400))
+    }
+
+    file.name = `photo_${data._id}${path.parse(file.name).ext}`
+    file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async (error) => {
+        if (error) {
+            console.error(error)
+            return next(new ErrorResponse('Problem with file upload', 500))
+        }
+
+        await Bootcamp.findByIdAndUpdate(req.params.id, {
+            photo: file.name
+        })
+
+        res.status(200)
+            .json({success: true, data: file.name})
+    })
 })

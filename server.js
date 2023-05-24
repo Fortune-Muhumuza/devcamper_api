@@ -2,6 +2,8 @@ const express = require("express")
 const dotenv = require("dotenv")
 const colors = require("colors")
 const morgan = require("morgan")
+const path = require("path")
+const fileuploader = require("express-fileupload")
 const bootcampsRouter = require("./routes/bootcamps")
 const coursesRouter = require('./routes/courses')
 const connectDB = require("./config/db")
@@ -19,6 +21,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use(express.json())
+app.use(fileuploader({}))
+app.use(express.static(path.join(__dirname, 'public')))
 app.use('/api/v1/bootcamps', bootcampsRouter)
 app.use('/api/v1/courses', coursesRouter)
 app.use(errorHandler)
