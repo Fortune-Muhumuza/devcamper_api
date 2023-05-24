@@ -75,7 +75,7 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse(`No course found with id of ${req.params.id}`, 404))
     }
 
-    const newCourse = await Course.findByIdAndUpdate(req.params.id, req.body, {
+    const updatedCourse = await Course.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true
     })
@@ -83,7 +83,7 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
     res.status(200)
         .json({
             success: true,
-            data: newCourse
+            data: updatedCourse
         })
 })
 
@@ -91,13 +91,10 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/v1/courses/:id
 // @access  Private
 exports.deleteCourse = asyncHandler(async (req, res, next) => {
-    const course = await Course.findById(req.params.id)
+    const course = await Course.findByIdAndDelete(req.params.id)
     if (!course) {
         return next(new ErrorResponse(`No course found with id of ${req.params.id}`, 404))
     }
-
-    await Course.deleteOne(course)
-
 
     res.status(200)
         .json({
