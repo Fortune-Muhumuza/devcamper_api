@@ -10,17 +10,17 @@ const Bootcamp = require('../models/Bootcamp')
 exports.getCourses = asyncHandler(async (req, res, next) => {
     const bootcampId = req.params.bootcampId || undefined
 
-    const query = bootcampId ? Course.find({bootcamp: bootcampId}) : Course.find()
-        // .populate('bootcamp')
-        .populate('bootcamp', 'name description _id')
+    if (bootcampId) {
+        const courses = await Course.find({bootcamp: bootcampId});
 
-    const courses = await query
+        return res.status(200).json({
+            success: true,
+            count: courses.length,
+            data: courses
+        })
+    }
 
-    res.status(200).json({
-        success: true,
-        count: courses.length,
-        data: courses
-    })
+    res.status(200).json(res.advancedResults)
 })
 
 // @desc    Get course
