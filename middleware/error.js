@@ -4,7 +4,8 @@ const errorHandler = (error, req, res, next) => {
     let responseError = {...error, message: error.message}
 
     if (error.code === 11000) {
-        const message = `Duplicate field value entered`
+        const keys = Object.keys(error.keyPattern).join(',')
+        const message = `Duplicate field value entered ${keys}`
         responseError = new ErrorResponse(message, 400)
     }
 
