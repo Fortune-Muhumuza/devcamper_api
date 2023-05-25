@@ -6,6 +6,7 @@ const path = require("path")
 const fileuploader = require("express-fileupload")
 const bootcampsRouter = require("./routes/bootcamps")
 const coursesRouter = require('./routes/courses')
+const authRouter = require("./routes/auth")
 const connectDB = require("./config/db")
 const errorHandler = require('./middleware/error')
 
@@ -25,6 +26,7 @@ app.use(fileuploader({}))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/api/v1/bootcamps', bootcampsRouter)
 app.use('/api/v1/courses', coursesRouter)
+app.use('/api/v1/auth', authRouter)
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 5000
