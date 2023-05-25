@@ -24,7 +24,7 @@ router.route('/:radius/:zipcode/:distance')
     .get(getBootcampsInRadius)
 
 router.route('/:id/photo')
-    .put([protect, authorize('publisher', 'admin'), bootcampPhotoUpload])
+    .put([protect, authorize('publisher', 'admin'), bootcampLoader, bootcampPhotoUpload])
 
 router.route('/')
     .get([advancedResults(Bootcamp, 'courses', 'title description'), getBootcamps])
