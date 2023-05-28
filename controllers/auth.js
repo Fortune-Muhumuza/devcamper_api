@@ -3,7 +3,6 @@ const ErrorResponse = require("../utils/errorResponse")
 const asyncHandler = require("../middleware/async")
 const User = require("../models/User")
 const sendEmail = require("../utils/sendEmail")
-const {uriDecodeFileName} = require("express-fileupload/lib/utilities");
 
 
 // @desc    Register user
