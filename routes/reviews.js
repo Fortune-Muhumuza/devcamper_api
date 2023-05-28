@@ -1,5 +1,5 @@
 const express = require('express')
-const {getReviews, getSingleReview, addReview} = require('../controllers/reviews')
+const {getReviews, getSingleReview, addReview, updateReview} = require('../controllers/reviews')
 const Review = require('../models/Review')
 const advancedResults = require('../middleware/advancedResults')
 const {protect, authorize} = require('../middleware/auth')
@@ -12,5 +12,6 @@ router.route('/')
 
 router.route('/:id')
     .get(getSingleReview)
+    .put([protect, authorize('user', 'admin'), updateReview])
 
 module.exports = router
