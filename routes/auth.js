@@ -1,7 +1,7 @@
 const express = require("express")
 const {register, login, getMe, forgotPassword, resetPassword, updateDetails, updatePassword} = require("../controllers/auth")
 const {protect} = require("../middleware/auth")
-const usersRouter = require("./users")
+const usersRouter = require('./users')
 
 const router = express.Router({mergeParams: true})
 
