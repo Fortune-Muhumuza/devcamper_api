@@ -165,6 +165,22 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
     return await sendTokenResponse(user, 200, res)
 })
 
+// @desc    Log Users Out /Clear Cookies
+// @route   GET /api/v1/auth/logout
+// @access  Private
+exports.logout = asyncHandler(async (req, res, next) => {
+    console.log(req.cookies)
+    req.cookies.set('token', 'none', {
+        expires: new Date(),
+        httpOnly: true
+    })
+
+    res.status(200).json({
+        success: true,
+        data: {}
+    })
+})
+
 
 const sendTokenResponse = async (user, statusCode, res) => {
     const token = await user.getSignedJwtToken()
