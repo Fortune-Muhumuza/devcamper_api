@@ -13,6 +13,6 @@ router.route('/')
 router.route('/:id')
     .get(getSingleReview)
     .put([protect, authorize('user', 'admin'), updateReview])
-    .put([protect, authorize('user', 'admin'), deleteReview])
+    .delete([protect, authorize('user', 'admin'), deleteReview])
 
 module.exports = router

@@ -4,12 +4,14 @@ const ErrorResponse = require("../utils/errorResponse")
 const User = require("../models/User")
 
 exports.protect = asyncHandler(async (req, res, next) => {
-    if (!req.headers.authorization || !req.headers.authorization.startsWith('Bearer')) {
-        return next(new ErrorResponse('Not authorized to access this route', 401))
-    }
-
-    const token = req.headers.authorization.split(' ')[1]
-        .trim() || undefined
+    const token = (() => {
+        if (req.headers.authorization || req.headers.authorization.startsWith('Bearer')) {
+            return req.headers.authorization.split(' ')[1]
+                .trim() || undefined
+        } else if (req.cookies.token) {
+            return req.cookies.token
+        }
+    })()
 
     if (!token) {
         return next(new ErrorResponse('Not authorized to access this route', 401))
@@ -26,7 +28,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
     }
 })
 
-exports.authorize = (...roles) =>  (req, res, next) => {
+exports.authorize = (...roles) => (req, res, next) => {
     if (!roles.includes(req.user.role)) {
         return next(new ErrorResponse(`User role ${req.user.role} is not authorized to access this route`, 403))
     }
